@@ -7,7 +7,10 @@ import com.mxgraph.model.mxIGraphModel;
 import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.swing.handler.mxConnectionHandler;
 
-import data.ConnectionManager;
+import data.node.ConnectionManager;
+import data.node.Input;
+import data.node.Output;
+
 
 /**
  * @author Simon Dufour
@@ -15,8 +18,10 @@ import data.ConnectionManager;
  */
 public class NodeConnetionHandler extends mxConnectionHandler {
 
-	public NodeConnetionHandler(mxGraphComponent graphComponent) {
+	protected final ConnectionManager cm;
+	public NodeConnetionHandler(mxGraphComponent graphComponent, ConnectionManager cm) {
 		super(graphComponent);
+		this.cm = cm;
 	}
 	
 	@Override
@@ -27,16 +32,16 @@ public class NodeConnetionHandler extends mxConnectionHandler {
 		Object input = model.getValue(target);
 		//if(  output instanceof data.Output<?> || input instanceof data.Input<?>)
 		{
-			if( !(output instanceof data.Output<?> && input instanceof data.Input<?>))
+			if( !(output instanceof Output<?> && input instanceof Input<?>))
 				return "";
 			
-			if( !((data.Output<?>)output).isInputConnectable(( data.Input<?>)input) )
+			if( !((Output<?>)output).isInputConnectable((Input<?>)input) )
 			{
 				return "Wrong data Type!";
 			}
 			
 			// if input is connected => invalid
-			if( ((data.Input<?>) input).getOutput() != null)
+			if( ((Input<?>) input).getOutput() != null)
 				return "input already connected";
 			
 //			//if input is connected but edge is being moved

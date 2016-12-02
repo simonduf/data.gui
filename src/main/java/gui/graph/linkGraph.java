@@ -22,11 +22,11 @@ import com.mxgraph.util.mxEventObject;
 import com.mxgraph.util.mxEventSource.mxIEventListener;
 import com.mxgraph.view.mxGraph;
 
-import data.ConnectionManager;
-import data.Input;
-import data.NamedElement;
-import data.Node;
-import data.Output;
+import data.node.ConnectionManager;
+import data.node.Input;
+import data.node.Node;
+import data.node.Output;
+
 
 /**
  * @author simon
@@ -60,13 +60,13 @@ public class linkGraph extends JFrame
 				Object output = model.getValue(source);
 				Object input = model.getValue(target);
 				
-				if( !(output instanceof data.Output<?>))
+				if( !(output instanceof Output<?>))
 					return false;
 				
-				if (!(input instanceof data.Input<?>))
+				if (!(input instanceof Input<?>))
 					return false;
 				
-				if( !((data.Output<?>)output).isInputConnectable(( data.Input<?>)input) )
+				if( !manager.isConnectable( ( Input<?>)input) ,  (Output<?>)output) )
 					return false;
 
 				return true;
@@ -79,18 +79,18 @@ public class linkGraph extends JFrame
 
 		try
 		{
-			Map<NamedElement, mxCell> mapA = new HashMap<NamedElement, mxCell>();
+			Map<Object, mxCell> mapA = new HashMap<Object, mxCell>();
 			
 			for(Node n : manager.getNodes())
 			{
-				new GuiNode(n, graph, mapA);
-				if(!manager.getkeeplist().contains(n))
-					manager.keep(n);
+				new GuiNode(n, graph, mapA, manager);
+//				if(!manager.getkeeplist().contains(n))
+//					manager.keep(n);
 			}
 			
 			for(Node n : manager.getNodes())
 			{
-				for(Output<?> o : n.getOutputs())
+				for(Output<?> o : manager.getOutputs(n).values())
 				{
 					for(Input<?> connectedInput : o.getConnectedInputs())
 					{
@@ -139,7 +139,7 @@ public class linkGraph extends JFrame
 			@Override
 			protected mxConnectionHandler createConnectionHandler()
 			{
-				return new NodeConnetionHandler(this);
+				return new NodeConnetionHandler(this, manager);
 			}
 		};
 		getContentPane().add(graphComponent);
@@ -219,8 +219,8 @@ public class linkGraph extends JFrame
 				mxICell targetCell = cell.getTarget();//gives the target cell
 				
 				
-				data.Output<?> output = (data.Output<?>) model.getValue(sourceCell);
-				data.Input<?> input = ( data.Input<?>) model.getValue(targetCell);
+				Output<?> output = (Output<?>) model.getValue(sourceCell);
+				Input<?> input = ( Input<?>) model.getValue(targetCell);
 				
 				
 				
@@ -264,8 +264,8 @@ public class linkGraph extends JFrame
 			mxICell targetCell = edge.getTarget();//gives the target cell
 			
 			mxIGraphModel model = graph.getModel();
-			data.Output<?> output = (data.Output<?>) model.getValue(sourceCell);
-			data.Input<?> input = ( data.Input<?>) model.getValue(targetCell);
+			Output<?> output = (Output<?>) model.getValue(sourceCell);
+			Input<?> input = ( Input<?>) model.getValue(targetCell);
 			
 			Connection c = connections.get(edge);
 			if(c != null)
@@ -304,12 +304,13 @@ public class linkGraph extends JFrame
 		}
 	}
 	
-	public class Connection extends NamedElement
+	public class Connection
 	{
+		public String name;
 		public Output<?> source;
 		public Input<?> destination;
 		protected Connection(String name, Output<?> source, Input<?> destination) {
-			super(name);
+			this.name = name;
 			this.source = source;
 			this.destination = destination;
 		}

@@ -32,7 +32,7 @@ import data.node.Output;
  * @author simon
  *
  */
-public class linkGraph extends JFrame
+public class LinkGraph extends JFrame
 {
 
 	/**
@@ -45,7 +45,7 @@ public class linkGraph extends JFrame
 	private ConnectionManager manager;
 	mxGraph graph;
 
-	public linkGraph(ConnectionManager manager)
+	public LinkGraph(ConnectionManager manager)
 	{
 		super("Link Graph");
 		this.manager = manager;
@@ -319,7 +319,7 @@ public class linkGraph extends JFrame
 	
 	public static void newFrame(ConnectionManager cm )
 	{
-		linkGraph frame = new linkGraph( cm);
+		LinkGraph frame = new LinkGraph( cm);
 		//frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setSize(800, 640);
 		frame.setVisible(true);

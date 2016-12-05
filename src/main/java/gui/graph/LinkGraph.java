@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
+
 import com.mxgraph.layout.mxFastOrganicLayout;
 import com.mxgraph.layout.mxIGraphLayout;
 import com.mxgraph.model.mxCell;
@@ -22,6 +24,8 @@ import com.mxgraph.util.mxEventObject;
 import com.mxgraph.util.mxEventSource.mxIEventListener;
 import com.mxgraph.view.mxGraph;
 
+import configurable.ConfigurationEditor;
+import configurable.ConfiguratorGui;
 import data.node.ConnectionManager;
 import data.node.Input;
 import data.node.Node;
@@ -71,6 +75,31 @@ public class LinkGraph extends JFrame
 
 				return true;
 			
+			}
+			
+			
+			// Overrides method to provide a cell label in the display
+			public String convertValueToString(Object cell) {
+				if (cell instanceof mxCell) {
+					Object value = ((mxCell) cell).getValue();
+
+					if (value instanceof Node)
+						return ((Node)value).getNodeName();
+					
+					if (value instanceof Input )
+						return manager.getName((Input<?>)value);
+					
+					if (value instanceof Output)
+						return manager.getName((Output<?>) value);
+					
+				}
+
+				return super.convertValueToString(cell);
+			}
+			
+			public boolean isCellEditable(Object cell)
+			{
+				return getModel().isEdge(cell);
 			}
 		};
 		Object parent = graph.getDefaultParent();
@@ -144,20 +173,25 @@ public class LinkGraph extends JFrame
 		};
 		getContentPane().add(graphComponent);
 		
-//		graphComponent.getGraphControl().addMouseListener(new MouseAdapter()
-//		{
-//		
-//			public void mouseReleased(MouseEvent e)
-//			{
-//				Object cell = graphComponent.getCellAt(e.getX(), e.getY());
-//				
-//				if (cell != null)
-//				{
-//					System.out.println("cell="+graph.getLabel(cell));
-//				}
-//			}
-//		});
- 		graph.setCellsEditable(false);//TODO implements, disabled for now
+		graphComponent.getGraphControl().addMouseListener(new MouseAdapter()
+		{
+		
+			public void mouseReleased(MouseEvent e)
+			{
+				if(!SwingUtilities.isRightMouseButton(e))
+						return;
+				
+				Object cell = graphComponent.getCellAt(e.getX(), e.getY());
+				
+				if (cell != null && cell instanceof mxCell)
+				{
+					System.out.println("Editing cell "+graph.getLabel(cell));
+					Object value = ((mxCell) cell).getValue();
+					ConfiguratorGui.showOptionFrame(new ConfigurationEditor(value));
+				}
+			}
+		});
+ 		graph.setCellsEditable(true);//TODO implements, disabled for now
 	    graph.setAllowDanglingEdges(false);
 	    graph.setAllowLoops(false);
 //	    graph.setCellsDeletable(false);//TODO now cells are also deleted from UI but not manager
@@ -169,6 +203,7 @@ public class LinkGraph extends JFrame
 //	    graph.setCellsBendable(false);
 		graphComponent.setImportEnabled(false);
 		graphComponent.setDragEnabled(false);
+		//graphComponent.setToolTips(true); //override public String getToolTipForCell(Object cell) to get interesting results
 		//graphComponent.getConnectionHandler().addListener(mxEvent.CONNECT, new EdgeConnectListener());
 		//graphComponent.getConnectionHandler().addListener(mxEvent.CONNECT_CELL, new graphConnectListener());
 		graph.addListener(mxEvent.CELL_CONNECTED, new graphConnectListener());

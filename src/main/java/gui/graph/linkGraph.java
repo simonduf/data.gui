@@ -66,7 +66,7 @@ public class linkGraph extends JFrame
 				if (!(input instanceof Input<?>))
 					return false;
 				
-				if( !manager.isConnectable( ( Input<?>)input) ,  (Output<?>)output) )
+				if( !manager.isConnectable( ( Input<?>)input ,  (Output<?>)output) )
 					return false;
 
 				return true;
@@ -234,13 +234,13 @@ public class linkGraph extends JFrame
 				if(input != oldInput)
 					System.out.println( "input mismatch: " + oldInput + " !=  " + input);
 				
-				if(oldInput.getOutput()!= oldOutput)
+				if( manager.getOutput(input) != oldOutput)
 				{
-					System.out.println( "connection mismatch: " + oldInput.getOutput() + " !=  " + oldOutput);
+					System.out.println( "connection mismatch: " + manager.getOutput(oldInput) + " !=  " + oldOutput);
 					return;
 				}
 				
-				oldOutput.disconect(oldInput);
+				manager.disconnect(oldInput, oldOutput);//oldOutput.disconect(oldInput);
 				connections.remove(cell);
 				//Do not dispose node!!
 				System.out.println("Disconnecting " + oldOutput + " and " + oldInput);
@@ -276,11 +276,11 @@ public class linkGraph extends JFrame
 				
 				if(input!=oldInput || output!=oldOutput)
 				{
-					if (oldInput.getOutput() != oldOutput)
+					if ( manager.getOutput(oldInput)  != oldOutput)
 					{
 						System.out.println("?input not connected to what it was supposed to...?");
 					}
-					oldOutput.disconect(oldInput);
+					manager.disconnect(oldInput, oldOutput);//oldOutput.disconect(oldInput);
 					connections.remove(edge);
 					//Do not dispose node!!
 					System.out.println("Disconnecting " + oldOutput + " and " + oldInput);

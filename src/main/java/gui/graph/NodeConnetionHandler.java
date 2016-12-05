@@ -35,13 +35,13 @@ public class NodeConnetionHandler extends mxConnectionHandler {
 			if( !(output instanceof Output<?> && input instanceof Input<?>))
 				return "";
 			
-			if( !((Output<?>)output).isInputConnectable((Input<?>)input) )
+			if( !cm.isConnectable((Input<?>)input, (Output<?>)output) )
 			{
 				return "Wrong data Type!";
 			}
 			
 			// if input is connected => invalid
-			if( ((Input<?>) input).getOutput() != null)
+			if( cm.getOutput((Input<?>)input) != null)
 				return "input already connected";
 			
 //			//if input is connected but edge is being moved

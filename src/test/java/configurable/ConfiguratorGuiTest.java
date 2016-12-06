@@ -6,7 +6,6 @@ import org.junit.Test;
 
 public class ConfiguratorGuiTest {
 
-	@Test
 	public void test() throws InterruptedException {
 		
 		class DummyClass {

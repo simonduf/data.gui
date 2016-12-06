@@ -12,7 +12,6 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -57,7 +56,7 @@ public class ConfiguratorGui {
 			
 			c.gridy++;
 			
-			
+			//TODO event to update display...
 			
 			//map.put(p, value);
 			//presenter.addPropertyChangeListener(variable, this);
@@ -87,14 +86,29 @@ public class ConfiguratorGui {
 	
 	
 	public static void showIntegerEditor(Parameter p) {
-		int ans = Integer.parseInt( JOptionPane.showInputDialog(null,
-		        "enter new value",
-		        p.name,
-		        JOptionPane.INFORMATION_MESSAGE,
-		        null,
-		        null,
-		        (Integer) p.get() ).toString());
-		p.set(ans);
+		try {
+			
+			String result = JOptionPane.showInputDialog(null,
+			        "enter new value",
+			        p.name,
+			        JOptionPane.INFORMATION_MESSAGE,
+			        null,
+			        null,
+			        p.get() == null? null : (Integer) p.get() ).toString();
+			if(result == null || result.isEmpty())
+				return;
+			
+			int ans = Integer.parseInt(result);
+			p.set(ans);
+		}
+		catch(NumberFormatException e)
+		{
+			//TODO switch to logger
+			//logger.
+			
+			System.out.println("Error when parsing the result, new value not assigned");
+			System.out.println(e);
+		}
 	}
 	
 }

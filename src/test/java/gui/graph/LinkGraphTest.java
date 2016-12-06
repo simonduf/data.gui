@@ -2,7 +2,9 @@ package gui.graph;
 
 import static org.junit.Assert.*;
 
+import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 import org.junit.Test;
@@ -16,15 +18,16 @@ import data.node.Output;
 
 public class LinkGraphTest {
 
-//	@Test
-//	public void test() {
-//		fail("Not yet implemented");
-//	}
+
 
 	public static class IntegerNode implements Node {
 		public Input<?> input = new Input<Integer>(this::processData){};
 		public Output<?> output = new Output<Integer>(){};
+		public String name;
 		private void processData(Integer d){	}
+		
+		public IntegerNode(String name)
+		{ this.name = name;}
 		
 		int i =2;
 		@Setter(name = "Integer")
@@ -35,30 +38,132 @@ public class LinkGraphTest {
 		
 		
 		public String getNodeName() {
-			return "The Integer Node!";
+			return name;
 		}
 	};
 	
 	public static class DoubleNode implements Node {
 		public Input<?> input = new Input<Double>(this::processData){};
 		public Output<?> output = new Output<Double>(){};
+		public String name;
+		
+		public DoubleNode(String name)
+		{ this.name = name;}
 		
 		private void processData(Double d){	}
 		public String getNodeName() {
-			return "The Double Node!";
+			return name;
 		}
 	};
 	
+	@Test
+	public void test() throws InterruptedException {
+		ConnectionManager cm = new ConnectionManager();
+		
+		IntegerNode intnode = new IntegerNode("intnode");
+		DoubleNode  doubleNode= new DoubleNode("doubleNode");
+		IntegerNode anotherIntNode = new IntegerNode("anotherIntNode");
+		DoubleNode anotherDoubleNode = new DoubleNode("anotherDoubleNode");
+		
+		cm.add(intnode);
+		cm.add(doubleNode);
+		cm.add(anotherIntNode);
+		cm.add(anotherDoubleNode);
+		
+		SwingUtilities.invokeLater(new Runnable()
+		{
+			public void run()
+			{
+				LinkGraph graph = new LinkGraph(cm);
+				graph.pack();
+				graph.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+				graph.setVisible(true);
+			}
+		});
+		
+		
+		Thread.sleep(1000);
+		
+		//Test Connection
+		{
+			NonModalJOptionPane dialog = new NonModalJOptionPane( "Connect intnode's output to anothorIntNode's input.");
+			
+			while(!intnode.output.getConnectedInputs().contains(anotherIntNode.input) )
+			{
+				Thread.sleep(100);
+				dialog.failOnCancellAndReshowIfClosed();
+			}
+			assertTrue(intnode.output.getConnectedInputs().contains(anotherIntNode.input));
+			dialog.dialog.setVisible(false);
+		}
+		
+		
+		//Test disconnection
+		{
+			NonModalJOptionPane dialog = new NonModalJOptionPane( "Disconnect intnode's output from anothorIntNode's input by selecting the connection and pressing the DEL key.");
+			
+			while(intnode.output.getConnectedInputs().contains(anotherIntNode.input) )
+			{
+				Thread.sleep(100);
+				dialog.failOnCancellAndReshowIfClosed();
+
+			}
+			assertTrue(!intnode.output.getConnectedInputs().contains(anotherIntNode.input));
+			dialog.dialog.setVisible(false);
+		}
+		
+		//Test setting value
+		{
+			NonModalJOptionPane dialog = new NonModalJOptionPane( "Right click on intNode and set the Integer value to 3");
+			
+			while(intnode.i != 3)
+			{
+				Thread.sleep(100);
+				dialog.failOnCancellAndReshowIfClosed();
+			}
+			
+			assertTrue(intnode.i == 3);
+			dialog.setVisible(false);
+		}
+		
+		
+
+	}
 	
+	@SuppressWarnings("serial")
+	public static class NonModalJOptionPane extends JOptionPane
+	{
+		public JDialog dialog;
+		NonModalJOptionPane(String message)
+		{
+			super(message, JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION);
+			dialog = createDialog(null, "");
+			dialog.setModal(false); // this says not to block background components
+			dialog.setVisible(true);
+		}
+		
+		public void failOnCancellAndReshowIfClosed()
+		{
+			if(getValue() instanceof Integer && (Integer)getValue() == JOptionPane.CANCEL_OPTION)
+				fail();
+			
+			if(getValue() != JOptionPane.UNINITIALIZED_VALUE)
+			{
+				setValue(JOptionPane.UNINITIALIZED_VALUE);
+				dialog.setVisible(true);
+			}
+		}
+	}
 	public static void main(String[] args)
 	{
 		ConnectionManager cm = new ConnectionManager();
 		
 
-		IntegerNode intnode = new IntegerNode();
-		DoubleNode  doubleNode= new DoubleNode();
-		IntegerNode anotherIntNode = new IntegerNode();
-		DoubleNode anotherDoubleNode = new DoubleNode();
+		
+		IntegerNode intnode = new IntegerNode("intnode");
+		DoubleNode  doubleNode= new DoubleNode("doubleNode");
+		IntegerNode anotherIntNode = new IntegerNode("anotherIntNode");
+		DoubleNode anotherDoubleNode = new DoubleNode("anotherDoubleNode");
 		
 		cm.add(intnode);
 		cm.add(doubleNode);

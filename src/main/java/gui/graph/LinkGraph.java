@@ -187,7 +187,7 @@ public class LinkGraph extends JFrame
 				{
 					System.out.println("Editing cell "+graph.getLabel(cell));
 					Object value = ((mxCell) cell).getValue();
-					ConfiguratorGui.showOptionFrame(new ConfigurationEditor(value));
+					new ConfiguratorGui(new ConfigurationEditor(value)).showOptionFrame();
 				}
 			}
 		});

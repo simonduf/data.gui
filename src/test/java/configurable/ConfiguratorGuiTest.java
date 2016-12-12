@@ -6,6 +6,7 @@ import org.junit.Test;
 
 public class ConfiguratorGuiTest {
 
+	@Test
 	public void test() throws InterruptedException {
 		
 		class DummyClass {
@@ -22,7 +23,7 @@ public class ConfiguratorGuiTest {
 		
 		Object o = new DummyClass();
 		ConfigurationEditor cfgEdit = new ConfigurationEditor(o);
-		ConfiguratorGui.showOptionFrame(cfgEdit);
+		new ConfiguratorGui(cfgEdit).showOptionFrame();
 		Thread.sleep(10000);
 	}
 

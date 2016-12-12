@@ -10,7 +10,7 @@ plugins {
   id 'java'
 
   //Plugins for code coverage
-  id "org.sonarqube" version "1.0"
+  id "org.sonarqube" version "2.2.1"
   id 'jacoco'
   
   //Plugin for having multiple tests
@@ -51,7 +51,7 @@ dependencies {
 	//compile 'commons-lang:commons-lang:2.6'
 	//compile 'net.sourceforge.jtransforms:jtransforms:2.4.0'
 	compile 'org.tinyjee.jgraphx:jgraphx:2.3.0.5'
-	compile 'simond:data:0.1.2-rc.6.dev.2+dbd0de8'
+	compile 'simond:data:0.1.2-rc.6.dev.3+aedb781'
 	
 	compile 'org.slf4j:slf4j-api:1.7.2'				// Logging library.
 	runtime 'ch.qos.logback:logback-classic:1.0.9'		// Logging library.

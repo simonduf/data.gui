@@ -7,6 +7,10 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -22,14 +26,30 @@ import configurable.ConfigurationEditor.Parameter;
  * @author Simon Dufour
  *
  */
-public class ConfiguratorGui {
+public class ConfiguratorGui implements PropertyChangeListener {
 	
-	public static void showOptionFrame(ConfigurationEditor ce)
+	private static Map<Class<?>, Editor> editors = new HashMap<>();
+	static {
+		editors.put(Integer.class, new IntegerEditor());
+		editors.put(int.class, new IntegerEditor());
+	}
+
+	private final ConfigurationEditor ce;
+	private final Map<String,JLabel> labels = new HashMap<>();
+	
+	public ConfiguratorGui(ConfigurationEditor ce)
 	{
-		JOptionPane.showMessageDialog(null,getDisplayPane(ce),"Information",JOptionPane.INFORMATION_MESSAGE);
+		this.ce = ce;
 	}
 	
-	public static JPanel getDisplayPane(ConfigurationEditor ce)
+	public void showOptionFrame()
+	{
+		ce.parameters.forEach(p-> p.addPropertyChangeListener(p.name, this) );
+		JOptionPane.showMessageDialog(null,getDisplayPane(),"Information",JOptionPane.INFORMATION_MESSAGE);
+		ce.parameters.forEach(p-> p.removePropertyChangeListener(p.name, this) );
+	}
+	
+	public JPanel getDisplayPane()
 	{
 		JPanel panel = new JPanel();
 		panel.setBorder(BorderFactory.createTitledBorder(ce.object.toString()));
@@ -48,6 +68,7 @@ public class ConfiguratorGui {
 			
 			c.gridx=1;
 			JLabel value = new JLabel(p.get().toString());
+			labels.put(p.name, value);
 			panel.add(value,c);
 			
 			c.gridx=2;
@@ -55,13 +76,13 @@ public class ConfiguratorGui {
 			panel.add(editBtn,c);
 			
 			c.gridy++;
-			
-			//TODO event to update display...
-			
-			//map.put(p, value);
-			//presenter.addPropertyChangeListener(variable, this);
 		}
 		return panel;
+	}
+	
+	@Override
+	public void propertyChange(PropertyChangeEvent event) {
+		labels.get(event.getPropertyName()).setText(String.valueOf(event.getNewValue()));
 	}
 	
 	private static Action CreateEditAction(Parameter p)
@@ -75,40 +96,56 @@ public class ConfiguratorGui {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				//TODO map of type that can be edited and the associated editor
-				if(p.type.equals(Integer.class) || p.type.equals(int.class))
-					showIntegerEditor(p);
+				
+				Editor editor = editors.get(p.type);
+				
+				if(editor!=null)
+					editor.showDialog(p);
 			}
 		}
 		
 		return new ParameterAction();
 	}
 	
-	
-	public static void showIntegerEditor(Parameter p) {
-		try {
-			
-			String result = JOptionPane.showInputDialog(null,
-			        "enter new value",
-			        p.name,
-			        JOptionPane.INFORMATION_MESSAGE,
-			        null,
-			        null,
-			        p.get() == null? null : (Integer) p.get() ).toString();
-			if(result == null || result.isEmpty())
-				return;
-			
-			int ans = Integer.parseInt(result);
-			p.set(ans);
-		}
-		catch(NumberFormatException e)
-		{
-			//TODO switch to logger
-			//logger.
-			
-			System.out.println("Error when parsing the result, new value not assigned");
-			System.out.println(e);
-		}
+	public static interface Editor
+	{
+		void showDialog(Parameter p);
+		JPanel getPanel(Parameter p);
 	}
 	
+	public static class IntegerEditor implements Editor
+	{
+		@Override
+		public void showDialog(Parameter p) {
+			try {
+				
+				String result = JOptionPane.showInputDialog(null,
+				        "enter new value",
+				        p.name,
+				        JOptionPane.INFORMATION_MESSAGE,
+				        null,
+				        null,
+				        p.get() == null? null : (Integer) p.get() ).toString();
+				if(result == null || result.isEmpty())
+					return;
+				
+				int ans = Integer.parseInt(result);
+				p.set(ans);
+			}
+			catch(NumberFormatException e)
+			{
+				//TODO switch to logger
+				//logger.
+				
+				System.out.println("Error when parsing the result, new value not assigned");
+				System.out.println(e);
+			}
+		}
+
+		@Override
+		public JPanel getPanel(Parameter p) {
+			return null;
+		}
+		
+	}
 }

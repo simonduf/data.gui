@@ -27,6 +27,8 @@ import com.mxgraph.view.mxGraph;
 import configurable.ConfigurationEditor;
 import configurable.ConfiguratorGui;
 import data.node.ConnectionManager;
+import data.node.ConnectionManager.NodeEvent;
+import data.node.ConnectionManager.NodeEventListener;
 import data.node.Input;
 import data.node.Node;
 import data.node.Output;
@@ -36,7 +38,7 @@ import data.node.Output;
  * @author simon
  *
  */
-public class LinkGraph extends JFrame
+public class LinkGraph extends JFrame implements NodeEventListener
 {
 
 	/**
@@ -45,6 +47,7 @@ public class LinkGraph extends JFrame
 	private static final long serialVersionUID = -2707712944901661771L;
 
 	Map<mxCell,Connection > connections = new HashMap<>();
+	Map<Object, mxCell> mapObjectToMxCell = new HashMap<Object, mxCell>();
 
 	private ConnectionManager manager;
 	mxGraph graph;
@@ -108,50 +111,16 @@ public class LinkGraph extends JFrame
 
 		try
 		{
-			Map<Object, mxCell> mapA = new HashMap<Object, mxCell>();
+			
 			
 			for(Node n : manager.getNodes())
-			{
-				new GuiNode(n, graph, mapA, manager);
-//				if(!manager.getkeeplist().contains(n))
-//					manager.keep(n);
-			}
+				addNodeIfNeeded(n);
 			
 			for(Node n : manager.getNodes())
-			{
 				for(Output<?> o : manager.getOutputs(n).values())
-				{
 					for(Input<?> connectedInput : o.getConnectedInputs())
-					{
-						Object v1;
-						if(mapA.containsKey(o))
-						{
-							v1 = mapA.get(o);
-						}
-						else
-						{
-							throw new RuntimeException( "object not in the map: " + n);
-						}
-						
-						Object v2;
-						if(mapA.containsKey(connectedInput))
-						{
-							v2 = mapA.get(connectedInput);
-						}
-						else
-						{
-							throw new RuntimeException( "object not in the map: " + n);
-						}
-						
-						//Change name to type? to connectedInput.getInputType().getName()^
-						Connection connection = new Connection( "" , o, connectedInput) ;
-						connections.put((mxCell) graph.insertEdge(parent, null,connection , v1, v2), connection);
-						
-					}
-				}
-				
-				
-			}
+						createConnection(connectedInput, o);
+	
 			
 			mxIGraphLayout layout = new mxFastOrganicLayout(graph);
 			//mxIGraphLayout layout = new mxHierarchicalLayout(graph, SwingConstants.WEST);
@@ -191,7 +160,7 @@ public class LinkGraph extends JFrame
 				}
 			}
 		});
- 		graph.setCellsEditable(true);//TODO implements, disabled for now
+ 		graph.setCellsEditable(false);//TODO implements, disabled for now
 	    graph.setAllowDanglingEdges(false);
 	    graph.setAllowLoops(false);
 //	    graph.setCellsDeletable(false);//TODO now cells are also deleted from UI but not manager
@@ -289,6 +258,7 @@ public class LinkGraph extends JFrame
 	//	source : boolean indicating the side of the arrow that changed
 	//	terminal : ?
 	public class graphConnectListener implements mxIEventListener {
+		@SuppressWarnings("unchecked")
 		public void invoke(Object sender, mxEventObject event) {
 			mxCell edge = (mxCell) event.getProperty("edge");
 			boolean source = (Boolean) event.getProperty("source");
@@ -330,7 +300,7 @@ public class LinkGraph extends JFrame
 			}
 
 			
-			manager.connect(input, output);
+			manager.connect((Input<Object>)input, (Output<Object>)output);
 			connections.put(edge, new Connection("", output, input));
 			
 			
@@ -358,5 +328,55 @@ public class LinkGraph extends JFrame
 		//frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setSize(800, 640);
 		frame.setVisible(true);
+	}
+
+	@Override
+	public void accept(NodeEvent e) {
+		if (!SwingUtilities.isEventDispatchThread())
+		{
+			SwingUtilities.invokeLater( ()-> accept(e));
+			return;
+		}
+			
+		graph.getModel().beginUpdate();
+
+		try
+		{
+			if(NodeEvent.NEW_NODE.equals(e.event))
+				if(!mapObjectToMxCell.containsKey(e.sourceNode))
+					addNodeIfNeeded(e.sourceNode);
+			
+		}
+		finally
+		{
+			graph.getModel().endUpdate();
+		}
+		
+		
+	}
+	
+	private void addNodeIfNeeded(Node n)
+	{
+		//TODO factory for GUI node!!! reference should not escape constructor!
+		new GuiNode(n, graph, mapObjectToMxCell, manager);
+	}
+	
+	private void createConnection(Input i, Output o)
+	{
+		Object v1;
+		if(mapObjectToMxCell.containsKey(o))
+			v1 = mapObjectToMxCell.get(o);
+		else
+			throw new RuntimeException( "object not in the map: " + o);
+		
+		Object v2;
+		if(mapObjectToMxCell.containsKey(i))
+			v2 = mapObjectToMxCell.get(i);
+		else
+			throw new RuntimeException( "object not in the map: " + i);
+		
+		//Change name to type? to connectedInput.getInputType().getName()^
+		Connection connection = new Connection( "" , o, i) ;
+		connections.put((mxCell) graph.insertEdge(graph.getDefaultParent(), null,connection , v1, v2), connection);
 	}
 }

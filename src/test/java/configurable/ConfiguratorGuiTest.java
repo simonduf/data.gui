@@ -2,11 +2,13 @@ package configurable;
 
 import static org.junit.Assert.*;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class ConfiguratorGuiTest {
 
 	@Test
+	@Ignore("Test combined with LinkGraphTest")
 	public void test() throws InterruptedException {
 		
 		class DummyClass {

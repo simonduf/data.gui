@@ -61,14 +61,12 @@ public class LinkGraphTest {
 		ConnectionManager cm = new ConnectionManager();
 		
 		IntegerNode intnode = new IntegerNode("intnode");
-		DoubleNode  doubleNode= new DoubleNode("doubleNode");
+		
 		IntegerNode anotherIntNode = new IntegerNode("anotherIntNode");
-		DoubleNode anotherDoubleNode = new DoubleNode("anotherDoubleNode");
+		
 		
 		cm.add(intnode);
-		cm.add(doubleNode);
 		cm.add(anotherIntNode);
-		cm.add(anotherDoubleNode);
 		
 		SwingUtilities.invokeLater(new Runnable()
 		{
@@ -78,6 +76,7 @@ public class LinkGraphTest {
 				graph.pack();
 				graph.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 				graph.setVisible(true);
+				cm.addListener(graph);
 			}
 		});
 		
@@ -126,7 +125,19 @@ public class LinkGraphTest {
 			dialog.setVisible(false);
 		}
 		
+		DoubleNode  doubleNode= new DoubleNode("doubleNode");
+		DoubleNode anotherDoubleNode = new DoubleNode("anotherDoubleNode");
 		
+		cm.add(doubleNode);
+		cm.add(anotherDoubleNode);
+		
+		{
+			NonModalJOptionPane dialog = new NonModalJOptionPane( "Click OK if there is two extra nodes.");
+			while(dialog.getValue() == JOptionPane.UNINITIALIZED_VALUE)
+				Thread.sleep(100);
+			assertEquals( JOptionPane.OK_OPTION, dialog.getValue() );
+			dialog.setVisible(false);
+		}
 
 	}
 	

@@ -272,6 +272,7 @@ public class LinkGraph extends JFrame implements NodeEventListener
 			Output<?> output = (Output<?>) model.getValue(sourceCell);
 			Input<?> input = ( Input<?>) model.getValue(targetCell);
 			
+			//If already existing connection moved
 			Connection c = connections.get(edge);
 			if(c != null)
 			{
@@ -299,8 +300,11 @@ public class LinkGraph extends JFrame implements NodeEventListener
 				return;
 			}
 
+			//SyncUp new connection with the underlying object if needed
+			if(!output.getConnectedInputs().contains(input))
+				manager.connect((Input<Object>)input, (Output<Object>)output);
 			
-			manager.connect((Input<Object>)input, (Output<Object>)output);
+			//Add a new connection object for future reference
 			connections.put(edge, new Connection("", output, input));
 			
 			
@@ -318,6 +322,41 @@ public class LinkGraph extends JFrame implements NodeEventListener
 			this.name = name;
 			this.source = source;
 			this.destination = destination;
+		}
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + getOuterType().hashCode();
+			result = prime * result + ((destination == null) ? 0 : destination.hashCode());
+			result = prime * result + ((source == null) ? 0 : source.hashCode());
+			return result;
+		}
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			Connection other = (Connection) obj;
+			if (!getOuterType().equals(other.getOuterType()))
+				return false;
+			if (destination == null) {
+				if (other.destination != null)
+					return false;
+			} else if (!destination.equals(other.destination))
+				return false;
+			if (source == null) {
+				if (other.source != null)
+					return false;
+			} else if (!source.equals(other.source))
+				return false;
+			return true;
+		}
+		private LinkGraph getOuterType() {
+			return LinkGraph.this;
 		}
 		
 	}
@@ -345,6 +384,17 @@ public class LinkGraph extends JFrame implements NodeEventListener
 			if(NodeEvent.NEW_NODE.equals(e.event))
 				if(!mapObjectToMxCell.containsKey(e.sourceNode))
 					addNodeIfNeeded(e.sourceNode);
+			
+			if(NodeEvent.CONNNECTION.equals(e.event))
+					createConnection(e.destInput, e.sourceOutput);
+			
+//			if(NodeEvent.DISCONNECTION.equals(e.event))
+//				if(!mapObjectToMxCell.containsKey(e.sourceNode))
+//					addNodeIfNeeded(e.sourceNode);
+//			
+//			if(NodeEvent.DISPOSE_NODE.equals(e.event))
+//				if(!mapObjectToMxCell.containsKey(e.sourceNode))
+//					dispose(e.sourceNode);
 			
 		}
 		finally
@@ -377,6 +427,7 @@ public class LinkGraph extends JFrame implements NodeEventListener
 		
 		//Change name to type? to connectedInput.getInputType().getName()^
 		Connection connection = new Connection( "" , o, i) ;
-		connections.put((mxCell) graph.insertEdge(graph.getDefaultParent(), null,connection , v1, v2), connection);
+		if(!connections.containsValue(connection))
+			connections.put((mxCell) graph.insertEdge(graph.getDefaultParent(), null,connection , v1, v2), connection);
 	}
 }

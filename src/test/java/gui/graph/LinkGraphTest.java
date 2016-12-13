@@ -21,8 +21,8 @@ public class LinkGraphTest {
 
 
 	public static class IntegerNode implements Node {
-		public Input<?> input = new Input<Integer>(this::processData){};
-		public Output<?> output = new Output<Integer>(){};
+		public Input<Integer> input = new Input<Integer>(this::processData){};
+		public Output<Integer> output = new Output<Integer>(){};
 		public String name;
 		private void processData(Integer d){	}
 		
@@ -43,8 +43,8 @@ public class LinkGraphTest {
 	};
 	
 	public static class DoubleNode implements Node {
-		public Input<?> input = new Input<Double>(this::processData){};
-		public Output<?> output = new Output<Double>(){};
+		public Input<Double> input = new Input<Double>(this::processData){};
+		public Output<Double> output = new Output<Double>(){};
 		public String name;
 		
 		public DoubleNode(String name)
@@ -122,7 +122,7 @@ public class LinkGraphTest {
 			}
 			
 			assertTrue(intnode.i == 3);
-			dialog.setVisible(false);
+			dialog.dialog.setVisible(false);
 		}
 		
 		DoubleNode  doubleNode= new DoubleNode("doubleNode");
@@ -136,7 +136,27 @@ public class LinkGraphTest {
 			while(dialog.getValue() == JOptionPane.UNINITIALIZED_VALUE)
 				Thread.sleep(100);
 			assertEquals( JOptionPane.OK_OPTION, dialog.getValue() );
-			dialog.setVisible(false);
+			dialog.dialog.setVisible(false);
+		}
+		
+		cm.connect(doubleNode.input, anotherDoubleNode.output);
+		
+		{
+			NonModalJOptionPane dialog = new NonModalJOptionPane( "Click OK if there is a connection between the two extra nodes.");
+			while(dialog.getValue() == JOptionPane.UNINITIALIZED_VALUE)
+				Thread.sleep(100);
+			assertEquals( JOptionPane.OK_OPTION, dialog.getValue() );
+			dialog.dialog.setVisible(false);
+		}
+		
+		cm.connect(doubleNode.input, doubleNode.output);
+		
+		{
+			NonModalJOptionPane dialog = new NonModalJOptionPane( "Click OK if the connection between the two extra nodes is removed.");
+			while(dialog.getValue() == JOptionPane.UNINITIALIZED_VALUE)
+				Thread.sleep(100);
+			assertEquals( JOptionPane.OK_OPTION, dialog.getValue() );
+			dialog.dialog.setVisible(false);
 		}
 
 	}

@@ -212,9 +212,11 @@ public class LinkGraph extends JFrame implements NodeEventListener
 			for( Object obj: cells)
 			{
 				mxCell cell = (mxCell) obj;
-				if(!cell.isEdge())
+				if(!cell.isEdge()  )
 				{
-					manager.dispose((Node) model.getValue(cell));
+					if(model.getValue(cell) instanceof Node)
+						manager.dispose((Node) model.getValue(cell));
+					
 					continue;
 				}
 				
@@ -227,8 +229,9 @@ public class LinkGraph extends JFrame implements NodeEventListener
 				Input<?> input = ( Input<?>) model.getValue(targetCell);
 				
 				
-				
-				
+				Connection c = connections.get(cell);
+				if(c == null)
+					return;
 				Input<?> oldInput = connections.get(cell).destination;
 				Output<?> oldOutput = connections.get(cell).source;
 				
@@ -390,14 +393,14 @@ public class LinkGraph extends JFrame implements NodeEventListener
 					addNodeIfNeeded(e.sourceNode);
 			
 			if(NodeEvent.CONNNECTION.equals(e.event))
-					createConnection(e.destInput, e.sourceOutput);
+				createConnection(e.destInput, e.sourceOutput);
 			
 			if(NodeEvent.DISCONNECTION.equals(e.event))
 				deleteConnection(e.destInput, e.sourceOutput);
 			
-//			if(NodeEvent.DISPOSE_NODE.equals(e.event))
-//				if(!mapObjectToMxCell.containsKey(e.sourceNode))
-//					dispose(e.sourceNode);
+			if(NodeEvent.DISPOSE_NODE.equals(e.event))
+				if(mapObjectToMxCell.containsKey(e.sourceNode))
+					deleteNode(e.sourceNode);
 			
 		}
 		finally
@@ -413,6 +416,23 @@ public class LinkGraph extends JFrame implements NodeEventListener
 		//DONE factory for GUI node!!! reference should not escape constructor!
 		//TODO now the object does notthing : does it need to be in a separate file/class?
 		GuiNode.createNode(n, graph, mapObjectToMxCell, manager);
+	}
+	
+	private void deleteNode(Node n)
+	{
+		if(!mapObjectToMxCell.containsKey(n))
+			System.out.println("Disposing node not in the map : " +  n.getNodeName());
+		
+		for( Input i : manager.getInputs(n).values())
+			if(mapObjectToMxCell.containsKey(i))
+				graph.removeCells( new Object[]{mapObjectToMxCell.get(i)});
+		
+		for( Output o : manager.getOutputs(n).values())
+			if(mapObjectToMxCell.containsKey(o))
+				graph.removeCells( new Object[]{mapObjectToMxCell.get(o)});
+		
+		
+		graph.removeCells( new Object[]{mapObjectToMxCell.remove(n)});
 	}
 	
 	private void createConnection(Input i, Output o)
@@ -454,8 +474,8 @@ public class LinkGraph extends JFrame implements NodeEventListener
 			for(mxCell cell : connections.keySet())
 				if(connection.equals(connections.get(cell) ))
 				{
-					graph.removeCells( new Object[]{cell});
 					connections.remove(cell);
+					graph.removeCells( new Object[]{cell});
 				}
 	}
 }

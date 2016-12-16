@@ -15,12 +15,13 @@ import data.node.ConnectionManager;
 import data.node.Input;
 import data.node.Node;
 import data.node.Output;
+import data.node.Disposable.DisposableSupport;
 
 public class LinkGraphTest {
 
 
 
-	public static class IntegerNode implements Node {
+	public static class IntegerNode extends DisposableSupport implements Node {
 		public Input<Integer> input = new Input<Integer>(this::processData){};
 		public Output<Integer> output = new Output<Integer>(){};
 		public String name;
@@ -42,7 +43,7 @@ public class LinkGraphTest {
 		}
 	};
 	
-	public static class DoubleNode implements Node {
+	public static class DoubleNode extends DisposableSupport implements Node {
 		public Input<Double> input = new Input<Double>(this::processData){};
 		public Output<Double> output = new Output<Double>(){};
 		public String name;
@@ -125,6 +126,20 @@ public class LinkGraphTest {
 			dialog.dialog.setVisible(false);
 		}
 		
+		{
+			NonModalJOptionPane dialog = new NonModalJOptionPane( "Click delete on remaining nodes.");
+			while(!intnode.isDisposed() || !anotherIntNode.isDisposed())
+			{
+				Thread.sleep(100);
+				dialog.failOnCancellAndReshowIfClosed();
+			}
+			
+			assertTrue(intnode.isDisposed());
+			assertTrue(anotherIntNode.isDisposed());
+			dialog.dialog.setVisible(false);
+		}
+
+		
 		DoubleNode  doubleNode= new DoubleNode("doubleNode");
 		DoubleNode anotherDoubleNode = new DoubleNode("anotherDoubleNode");
 		
@@ -158,6 +173,21 @@ public class LinkGraphTest {
 			assertEquals( JOptionPane.OK_OPTION, dialog.getValue() );
 			dialog.dialog.setVisible(false);
 		}
+		
+		cm.dispose(anotherDoubleNode);
+		cm.dispose(doubleNode);
+		
+		{
+			NonModalJOptionPane dialog = new NonModalJOptionPane( "Click OK if the doubleNode is removed.");
+			while(dialog.getValue() == JOptionPane.UNINITIALIZED_VALUE)
+				Thread.sleep(100);
+			assertEquals( JOptionPane.OK_OPTION, dialog.getValue() );
+			assertTrue(doubleNode.isDisposed());
+			dialog.dialog.setVisible(false);
+		}
+		
+		
+
 
 	}
 	

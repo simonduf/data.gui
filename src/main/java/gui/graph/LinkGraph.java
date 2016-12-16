@@ -470,12 +470,20 @@ public class LinkGraph extends JFrame implements NodeEventListener
 			throw new RuntimeException( "object not in the map: " + i);
 		
 		Connection connection = new Connection( "" , o, i) ;
+		Connection connectionInMap = null;
+		mxCell cellInMap = null;
 		if(connections.containsValue(connection))
 			for(mxCell cell : connections.keySet())
 				if(connection.equals(connections.get(cell) ))
 				{
-					connections.remove(cell);
-					graph.removeCells( new Object[]{cell});
+					connectionInMap = connections.get(cell);
+					cellInMap = cell;
 				}
+		
+		if( cellInMap != null )
+		{
+			connections.remove(cellInMap);
+			graph.removeCells( new Object[]{cellInMap});
+		}
 	}
 }

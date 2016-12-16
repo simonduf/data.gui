@@ -407,8 +407,9 @@ public class LinkGraph extends JFrame implements NodeEventListener
 	
 	private void addNodeIfNeeded(Node n)
 	{
-		//TODO factory for GUI node!!! reference should not escape constructor!
-		new GuiNode(n, graph, mapObjectToMxCell, manager);
+		//DONE factory for GUI node!!! reference should not escape constructor!
+		//TODO now the object does notthing : does it need to be in a separate file/class?
+		GuiNode.createNode(n, graph, mapObjectToMxCell, manager);
 	}
 	
 	private void createConnection(Input i, Output o)

@@ -28,19 +28,23 @@ public class GuiNode
 	final int	PORT_DIAMETER	= 20;
 	final int	PORT_RADIUS		= PORT_DIAMETER / 2;
 	
-	GuiNode(Node n, mxGraph graph, Map<Object, mxCell> mapA, ConnectionManager cm)
+	public static GuiNode createNode(Node n, mxGraph graph, Map<Object, mxCell> mapA, ConnectionManager cm)
 	{
 		Collection<Input> inputs = cm.getInputs(n).values();
 		Collection<Output> outputs = cm.getOutputs(n).values();
 		
-		mxCell main = createMainCell(n, graph, graph.getDefaultParent(), inputs.size(),outputs.size() );
+		GuiNode guiNode = new GuiNode();
+		
+		mxCell main = guiNode.createMainCell(n, graph, graph.getDefaultParent(), inputs.size(),outputs.size() );
+		
+		
 		mapA.put(n, main);
 		double count = 1;
 		
 		for (Input<?> i : inputs)
 		{
 			double pos = count++ / (double) (inputs.size() + 1);
-			mxCell c =  createInput(pos,i, graph, main);
+			mxCell c =  guiNode.createInput(pos,i, graph, main);
 			mapA.put(i, c);
 		}
 		count = 1;
@@ -48,10 +52,14 @@ public class GuiNode
 		for (Output<?> o : outputs)
 		{
 			double pos = count++ / (double) (outputs.size() + 1);
-			mxCell c = createOutput(pos,o, graph, main);
+			mxCell c = guiNode.createOutput(pos,o, graph, main);
 			mapA.put(o, c);
 		}
-		
+		return guiNode;
+	}
+	
+	private GuiNode()
+	{
 	}
 	
 	private mxCell createMainCell(Node n, mxGraph graph, Object parent, int inputSize, int outputSize)

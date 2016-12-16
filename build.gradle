@@ -102,17 +102,18 @@ artifacts {
 }
 
 
-	def user = null
-	def key = null
+
+
+bintray {
+
 	if(project.rootProject.file('local.properties').exists())
 	{
+		println 'Bintray User and key loaded from file'
 		Properties properties = new Properties()
 		properties.load(project.rootProject.file('local.properties').newDataInputStream())
 	    user = properties.getProperty("bintray.user")
 		key = properties.getProperty("bintray.apikey")
 	}
-
-bintray {
 
     configurations = ['archives']
     pkg {

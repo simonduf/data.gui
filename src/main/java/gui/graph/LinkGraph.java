@@ -244,9 +244,10 @@ public class LinkGraph extends JFrame implements NodeEventListener
 					return;
 				}
 				
-				manager.disconnect(oldInput, oldOutput);//oldOutput.disconect(oldInput);
+				
 				connections.remove(cell);
-				//Do not dispose node!!
+				manager.disconnect(oldInput, oldOutput);
+				
 				System.out.println("Disconnecting " + oldOutput + " and " + oldInput);
 			}
 		}
@@ -286,9 +287,10 @@ public class LinkGraph extends JFrame implements NodeEventListener
 					{
 						System.out.println("?input not connected to what it was supposed to...?");
 					}
-					manager.disconnect(oldInput, oldOutput);//oldOutput.disconect(oldInput);
+					
 					connections.remove(edge);
-					//Do not dispose node!!
+					manager.disconnect(oldInput, oldOutput);
+					
 					System.out.println("Disconnecting " + oldOutput + " and " + oldInput);
 				}
 			}
@@ -300,12 +302,14 @@ public class LinkGraph extends JFrame implements NodeEventListener
 				return;
 			}
 
+			// Add a new connection object for future reference
+			// This need to be done before calling manager.connect because that the generated event will create another link in the gui.
+			connections.put(edge, new Connection("", output, input));
+			
 			//SyncUp new connection with the underlying object if needed
 			if(!output.getConnectedInputs().contains(input))
 				manager.connect((Input<Object>)input, (Output<Object>)output);
 			
-			//Add a new connection object for future reference
-			connections.put(edge, new Connection("", output, input));
 			
 			
 			System.out.println("Connection from " +output  + " to " + input);
@@ -388,10 +392,9 @@ public class LinkGraph extends JFrame implements NodeEventListener
 			if(NodeEvent.CONNNECTION.equals(e.event))
 					createConnection(e.destInput, e.sourceOutput);
 			
-//			if(NodeEvent.DISCONNECTION.equals(e.event))
-//				if(!mapObjectToMxCell.containsKey(e.sourceNode))
-//					addNodeIfNeeded(e.sourceNode);
-//			
+			if(NodeEvent.DISCONNECTION.equals(e.event))
+				deleteConnection(e.destInput, e.sourceOutput);
+			
 //			if(NodeEvent.DISPOSE_NODE.equals(e.event))
 //				if(!mapObjectToMxCell.containsKey(e.sourceNode))
 //					dispose(e.sourceNode);
@@ -430,5 +433,29 @@ public class LinkGraph extends JFrame implements NodeEventListener
 		Connection connection = new Connection( "" , o, i) ;
 		if(!connections.containsValue(connection))
 			connections.put((mxCell) graph.insertEdge(graph.getDefaultParent(), null,connection , v1, v2), connection);
+	}
+	
+	private void deleteConnection(Input i, Output o)
+	{
+		Object v1;
+		if(mapObjectToMxCell.containsKey(o))
+			v1 = mapObjectToMxCell.get(o);
+		else
+			throw new RuntimeException( "object not in the map: " + o);
+		
+		Object v2;
+		if(mapObjectToMxCell.containsKey(i))
+			v2 = mapObjectToMxCell.get(i);
+		else
+			throw new RuntimeException( "object not in the map: " + i);
+		
+		Connection connection = new Connection( "" , o, i) ;
+		if(connections.containsValue(connection))
+			for(mxCell cell : connections.keySet())
+				if(connection.equals(connections.get(cell) ))
+				{
+					graph.removeCells( new Object[]{cell});
+					connections.remove(cell);
+				}
 	}
 }

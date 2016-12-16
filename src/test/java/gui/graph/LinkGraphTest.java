@@ -149,7 +149,7 @@ public class LinkGraphTest {
 			dialog.dialog.setVisible(false);
 		}
 		
-		cm.connect(doubleNode.input, doubleNode.output);
+		cm.disconnect(doubleNode.input, anotherDoubleNode.output);
 		
 		{
 			NonModalJOptionPane dialog = new NonModalJOptionPane( "Click OK if the connection between the two extra nodes is removed.");
